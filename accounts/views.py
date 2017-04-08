@@ -13,6 +13,11 @@ class UserForm(forms.Form):
     pwconfirmed = forms.CharField(label = 'Re-enter password', max_length = 30)
     email = forms.EmailField(label = 'Email address')
 
+class UserFormLogin(forms.Form):
+    username = forms.CharField(label = 'Username', max_length = 30)
+    password = forms.CharField(label = 'Password', max_length = 30)
+
+
 def hello_world(request):
     return render(request, 'hello_world.html',{
         'current_time': str(datetime.now()),
@@ -20,10 +25,10 @@ def hello_world(request):
 
 def login(request):
     if request.method == "POST":
-        uf = UserForm(request.POST)
+        uf = UserFormLogin(request.POST)
         if uf.is_valid():
-            username = uf.cleaned_data['Username']
-            password = uf.cleaned_data['Password']
+            username = uf.cleaned_data['username']
+            password = uf.cleaned_data['password']
             user = User.Objects.filter(get_username = username, get_passworld = password)
             if user:
                 return render(request, 'hello_world.html',{
@@ -32,25 +37,25 @@ def login(request):
             else:
                 return HttpResponseRedirect('/login/')
     else:
-        uf = UserForm()
-        return HttpResponseRedirect('/login/')
+        uf = UserFormLogin()
+    return render_to_response('login.html', {'uf': uf})
     
 def register(request):
     if request.method == "POST":
         uf = UserForm(request.POST)
         if uf.is_valid():
-            username = uf.cleaned_data('Usernme')
-            userChecked = User.Objects.filter(get_username = username)
+            username = uf.cleaned_data['username']
+            userChecked = User.objects.filter(username = username)
             if userChecked:
                 return render_to_response('register.html', {
                     'error': 'Error! Username existed!'
                     })
             else:
-                password = uf.cleaned_data['Password']
-                pwconfirmed = uf.cleaned_data['Re-enter password']
+                password = uf.cleaned_data['password']
+                pwconfirmed = uf.cleaned_data['pwconfirmed']
                 if(password == pwconfirmed):
                     email = uf.cleaned_data['Email address']
-                    user = User.obejcts.Create(username = username, password = password, email = email)
+                    user = User.objects.Create(username = username, password = password, email = email)
                     user.save()
                     return HttpResponseRedirect('/login/')
                 else:
@@ -59,4 +64,4 @@ def register(request):
                         })
     else:
         uf = UserForm()
-        return HttpResponseRedirect('/register/')
+    return render_to_response("register.html", {'uf': uf})
